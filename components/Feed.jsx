@@ -20,7 +20,7 @@ const PromptCardList = ({ data, handleTagClick }) => {
 
 function Feed() {
   const [allPosts, setAllPosts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Search states
   const [searchText, setSearchText] = useState("");
