@@ -10,6 +10,7 @@ const MyProfile = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const [posts, setPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -17,6 +18,7 @@ const MyProfile = () => {
       const data = await response.json();
 
       setPosts(data);
+      setIsLoading(false);
     };
 
     if (session?.user.id) {
@@ -50,6 +52,7 @@ const MyProfile = () => {
       data={posts}
       handleEdit={handleEdit}
       handleDelete={handleDelete}
+      isLoading={isLoading}
     />
   );
 };

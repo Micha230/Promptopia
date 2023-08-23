@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import PromptCard from "./PromptCard";
+import Image from "next/image";
 
 const PromptCardList = ({ data, handleTagClick }) => {
   return (
@@ -18,21 +19,55 @@ const PromptCardList = ({ data, handleTagClick }) => {
 };
 
 function Feed() {
-  const [searchText, setSeatchText] = useState("");
-  const [posts, setPosts] = useState([]);
+  const [allPosts, setAllPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleSearchChange = (e) => {};
+  // Search states
+  const [searchText, setSearchText] = useState("");
+  const [searchTimeout, setSearchTimeout] = useState(null);
+  const [searchedResults, setSearchedResults] = useState([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
+      setIsLoading(true);
       const response = await fetch("/api/prompt");
       const data = await response.json();
 
-      setPosts(data);
+      setAllPosts(data);
+      setIsLoading(false);
     };
 
     fetchPosts();
   }, []);
+
+  const filterPosts = (searchText) => {
+    const regex = new RegExp(searchText, "i"); //'i' flag for case-insensitive search
+    return allPosts.filter(
+      (post) =>
+        regex.test(post.creator.username) ||
+        regex.test(post.tag) ||
+        regex.test(post.prompt)
+    );
+  };
+  const handleSearchChange = (e) => {
+    clearTimeout(searchTimeout);
+    setSearchText(e.target.value);
+
+    // debounce method
+    setSearchTimeout(
+      setTimeout(() => {
+        const searchResult = filterPosts(e.target.value);
+        setSearchedResults(searchResult);
+      }, 500)
+    );
+  };
+
+  const handleTagClick = (tagName) => {
+    setSearchText(tagName);
+
+    const searchResult = filterPosts(tagName);
+    setSearchedResults(searchResult);
+  };
 
   return (
     <section className="feed">
@@ -47,7 +82,24 @@ function Feed() {
         />
       </form>
 
-      <PromptCardList data={posts} handleTagClick={() => {}} />
+      {isLoading ? (
+        <div className="w-full flex-center">
+          <Image
+            src="assets/icons/loader.svg"
+            width={50}
+            height={50}
+            alt="loader"
+            className="object-contain"
+          />
+        </div>
+      ) : searchText ? (
+        <PromptCardList
+          data={searchedResults}
+          handleTagClick={handleTagClick}
+        />
+      ) : (
+        <PromptCardList data={allPosts} handleTagClick={handleTagClick} />
+      )}
     </section>
   );
 }
